@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Draft Assistant (CLI)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/cli/draft_assistant.py",
+      "cwd": "${workspaceFolder}/cli",
+      "console": "integratedTerminal"
+    }
+  ]
+}

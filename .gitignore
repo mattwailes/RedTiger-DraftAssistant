@@ -1,0 +1,25 @@
+# --- Secrets: never commit these ---
+cli/oauth2.json
+web/.env
+web/.env.local
+*.env
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- Your real projection data (keep the .sample.csv templates in git,
+#     not full paid/scraped projection exports) ---
+cli/projections/*.csv
+!cli/projections/*.sample.csv
+
+# --- Node / web build ---
+web/node_modules/
+web/dist/
+web/.vite/
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db

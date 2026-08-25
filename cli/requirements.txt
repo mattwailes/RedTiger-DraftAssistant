@@ -1,0 +1,5 @@
+pandas>=2.0
+
+# Optional -- only needed for live Yahoo draft-board sync (see yahoo_client.py)
+yahoo_fantasy_api>=2.0
+yahoo_oauth>=2.0
