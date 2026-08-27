@@ -1,8 +1,18 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import Papa from "papaparse";
 import {
-  Upload, TrendingUp, AlertTriangle, Check, X, Sparkles,
-  Users, Calendar, ChevronRight, Trash2, Sliders, Loader2
+  Upload,
+  TrendingUp,
+  AlertTriangle,
+  Check,
+  X,
+  Sparkles,
+  Users,
+  Calendar,
+  ChevronRight,
+  Trash2,
+  Sliders,
+  Loader2,
 } from "lucide-react";
 
 /* ---------------------------------------------------------------
@@ -29,7 +39,15 @@ const COLORS = {
 const POSITIONS = ["QB", "RB", "WR", "TE", "K", "DST"];
 const FLEX_ELIGIBLE = ["RB", "WR", "TE"];
 
-const DEFAULT_ROSTER_SPOTS = { QB: 1, RB: 2, WR: 2, TE: 1, FLEX: 1, K: 1, DST: 1 };
+const DEFAULT_ROSTER_SPOTS = {
+  QB: 1,
+  RB: 2,
+  WR: 2,
+  TE: 1,
+  FLEX: 1,
+  K: 1,
+  DST: 1,
+};
 
 /* ---------------------------------------------------------------
    Sample data so the page is usable the instant it loads
@@ -56,7 +74,11 @@ const SAMPLE_FANTASYPROS = [
   ["Mark Andrews", "BAL", "TE", 175.0, 14],
   ["Chris Olave", "NO", "WR", 220.0, 11],
 ].map(([player, team, position, proj_points, bye_week]) => ({
-  player, team, position, proj_points, bye_week,
+  player,
+  team,
+  position,
+  proj_points,
+  bye_week,
 }));
 
 const SAMPLE_ESPN = SAMPLE_FANTASYPROS.map((p) => ({
@@ -100,7 +122,8 @@ function blendSources(sources) {
       const entry = byName.get(key);
       entry.weightedSum += (Number(row.proj_points) || 0) * w;
       entry.weightCovered += w;
-      if (entry.bye_week == null && row.bye_week != null) entry.bye_week = row.bye_week;
+      if (entry.bye_week == null && row.bye_week != null)
+        entry.bye_week = row.bye_week;
     }
   }
 
@@ -124,8 +147,10 @@ function computeBaselines(players, rosterSpots, numTeams) {
     const posPlayers = players
       .filter((p) => p.position === pos)
       .sort((a, b) => b.proj_points - a.proj_points);
-    if (posPlayers.length >= n && n > 0) baselines[pos] = posPlayers[n - 1].proj_points;
-    else if (posPlayers.length) baselines[pos] = posPlayers[posPlayers.length - 1].proj_points;
+    if (posPlayers.length >= n && n > 0)
+      baselines[pos] = posPlayers[n - 1].proj_points;
+    else if (posPlayers.length)
+      baselines[pos] = posPlayers[posPlayers.length - 1].proj_points;
     else baselines[pos] = 0;
   }
   return baselines;
@@ -134,7 +159,10 @@ function computeBaselines(players, rosterSpots, numTeams) {
 function targetCount(pos, rosterSpots, numTeams) {
   const starters = rosterSpots[pos] || 0;
   const flexSpots = rosterSpots.FLEX || 0;
-  const flexShare = FLEX_ELIGIBLE.includes(pos) && flexSpots ? flexSpots / FLEX_ELIGIBLE.length : 0;
+  const flexShare =
+    FLEX_ELIGIBLE.includes(pos) && flexSpots
+      ? flexSpots / FLEX_ELIGIBLE.length
+      : 0;
   return starters + flexShare;
 }
 
@@ -143,7 +171,12 @@ function targetCount(pos, rosterSpots, numTeams) {
 ----------------------------------------------------------------*/
 export default function DraftBoard() {
   const [sources, setSources] = useState([
-    { id: "fantasypros", name: "FantasyPros", weight: 0.5, rows: SAMPLE_FANTASYPROS },
+    {
+      id: "fantasypros",
+      name: "FantasyPros",
+      weight: 0.5,
+      rows: SAMPLE_FANTASYPROS,
+    },
     { id: "espn", name: "ESPN", weight: 0.5, rows: SAMPLE_ESPN },
   ]);
   const [numTeams, setNumTeams] = useState(12);
@@ -162,23 +195,27 @@ export default function DraftBoard() {
   const blended = useMemo(() => blendSources(sources), [sources]);
   const baselines = useMemo(
     () => computeBaselines(blended, rosterSpots, numTeams),
-    [blended, rosterSpots, numTeams]
+    [blended, rosterSpots, numTeams],
   );
   const withVbd = useMemo(
     () =>
       blended
-        .map((p) => ({ ...p, vbd: p.proj_points - (baselines[p.position] || 0) }))
+        .map((p) => ({
+          ...p,
+          vbd: p.proj_points - (baselines[p.position] || 0),
+        }))
         .sort((a, b) => b.vbd - a.vbd),
-    [blended, baselines]
+    [blended, baselines],
   );
   const available = useMemo(
     () => withVbd.filter((p) => !draftedNames.has(normalizeName(p.player))),
-    [withVbd, draftedNames]
+    [withVbd, draftedNames],
   );
 
   const rosterCounts = useMemo(() => {
     const counts = {};
-    for (const p of yourRoster) counts[p.position] = (counts[p.position] || 0) + 1;
+    for (const p of yourRoster)
+      counts[p.position] = (counts[p.position] || 0) + 1;
     return counts;
   }, [yourRoster]);
 
@@ -198,9 +235,11 @@ export default function DraftBoard() {
     for (const pos of POSITIONS) {
       const list = available.filter((p) => p.position === pos);
       const posGaps = list.map((p, i) =>
-        i < list.length - 1 ? p.vbd - list[i + 1].vbd : 0
+        i < list.length - 1 ? p.vbd - list[i + 1].vbd : 0,
       );
-      const avg = posGaps.length ? posGaps.reduce((a, b) => a + b, 0) / posGaps.length : 0;
+      const avg = posGaps.length
+        ? posGaps.reduce((a, b) => a + b, 0) / posGaps.length
+        : 0;
       list.forEach((p, i) => {
         gaps[normalizeName(p.player)] = Math.max(0, (posGaps[i] || 0) - avg);
       });
@@ -209,32 +248,43 @@ export default function DraftBoard() {
   }, [available]);
 
   const scored = useMemo(() => {
-    return available.map((p) => {
-      const target = targetCount(p.position, rosterSpots, numTeams);
-      const filled = rosterCounts[p.position] || 0;
-      const remaining = target - filled;
-      const needMultBase = remaining > 0 ? 1.15 : 0.95;
-      const needMult = 1 + (needMultBase - 1) * weights.need;
+    return available
+      .map((p) => {
+        const target = targetCount(p.position, rosterSpots, numTeams);
+        const filled = rosterCounts[p.position] || 0;
+        const remaining = target - filled;
+        const needMultBase = remaining > 0 ? 1.15 : 0.95;
+        const needMult = 1 + (needMultBase - 1) * weights.need;
 
-      const tierBonus = (tierGaps[normalizeName(p.player)] || 0) * weights.tier * 0.5;
+        const tierBonus =
+          (tierGaps[normalizeName(p.player)] || 0) * weights.tier * 0.5;
 
-      const byeConflicts =
-        p.bye_week != null ? (rosterByeWeeks[p.bye_week] || []).length : 0;
-      const byePenalty = byeConflicts * 8 * weights.bye;
+        const byeConflicts =
+          p.bye_week != null ? (rosterByeWeeks[p.bye_week] || []).length : 0;
+        const byePenalty = byeConflicts * 8 * weights.bye;
 
-      const score = p.vbd * needMult + tierBonus - byePenalty;
+        const score = p.vbd * needMult + tierBonus - byePenalty;
 
-      return {
-        ...p,
-        score,
-        needMult,
-        tierBonus,
-        byeConflicts,
-        byePenalty,
-        remaining,
-      };
-    }).sort((a, b) => b.score - a.score);
-  }, [available, rosterCounts, rosterByeWeeks, tierGaps, weights, rosterSpots, numTeams]);
+        return {
+          ...p,
+          score,
+          needMult,
+          tierBonus,
+          byeConflicts,
+          byePenalty,
+          remaining,
+        };
+      })
+      .sort((a, b) => b.score - a.score);
+  }, [
+    available,
+    rosterCounts,
+    rosterByeWeeks,
+    tierGaps,
+    weights,
+    rosterSpots,
+    numTeams,
+  ]);
 
   const topPick = scored[0];
   const runnersUp = scored.slice(1, 4);
@@ -242,7 +292,8 @@ export default function DraftBoard() {
   const filteredTable = useMemo(() => {
     return scored.filter((p) => {
       if (posFilter !== "ALL" && p.position !== posFilter) return false;
-      if (search && !p.player.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !p.player.toLowerCase().includes(search.toLowerCase()))
+        return false;
       return true;
     });
   }, [scored, posFilter, search]);
@@ -290,7 +341,7 @@ export default function DraftBoard() {
           })
           .filter((r) => r.player && !isNaN(r.proj_points));
         setSources((prev) =>
-          prev.map((s) => (s.id === pendingSourceId ? { ...s, rows } : s))
+          prev.map((s) => (s.id === pendingSourceId ? { ...s, rows } : s)),
         );
       },
     });
@@ -299,7 +350,9 @@ export default function DraftBoard() {
   };
 
   const updateWeight = (id, w) => {
-    setSources((prev) => prev.map((s) => (s.id === id ? { ...s, weight: w } : s)));
+    setSources((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, weight: w } : s)),
+    );
   };
 
   const askClaude = async () => {
@@ -318,7 +371,11 @@ export default function DraftBoard() {
           bye_conflicts: p.byeConflicts,
           still_needed: p.remaining > 0,
         })),
-        your_roster: yourRoster.map((p) => ({ player: p.player, position: p.position, bye_week: p.bye_week })),
+        your_roster: yourRoster.map((p) => ({
+          player: p.player,
+          position: p.position,
+          bye_week: p.bye_week,
+        })),
       };
       // NOTE: this calls YOUR OWN backend proxy, not Anthropic directly.
       // Browsers can't safely hold an Anthropic API key, and api.anthropic.com
@@ -329,7 +386,7 @@ export default function DraftBoard() {
       const proxyUrl = import.meta.env.VITE_AI_PROXY_URL;
       if (!proxyUrl) {
         setAiNote(
-          "AI advisor isn't configured. Set VITE_AI_PROXY_URL to your backend proxy (see web/README.md)."
+          "AI advisor isn't configured. Set VITE_AI_PROXY_URL to your backend proxy (see web/README.md).",
         );
         setAiLoading(false);
         return;
@@ -365,7 +422,9 @@ export default function DraftBoard() {
      Render
   ----------------------------------------------------------------*/
   return (
-    <div style={{ background: COLORS.bg, minHeight: "100%", color: COLORS.chalk }}>
+    <div
+      style={{ background: COLORS.bg, minHeight: "100%", color: COLORS.chalk }}
+    >
       <style>{FONTS}</style>
       <div
         style={{
@@ -413,8 +472,21 @@ export default function DraftBoard() {
             </h1>
           </div>
 
-          <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-            <LabeledNumber label="Teams" value={numTeams} onChange={setNumTeams} min={4} max={20} />
+          <div
+            style={{
+              display: "flex",
+              gap: 14,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <LabeledNumber
+              label="Teams"
+              value={numTeams}
+              onChange={setNumTeams}
+              min={4}
+              max={20}
+            />
             <button
               onClick={undraftAll}
               style={ghostButtonStyle}
@@ -434,41 +506,88 @@ export default function DraftBoard() {
           style={{ display: "none" }}
         />
 
-        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 20 }}>
+        <div
+          style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 20 }}
+        >
           {/* ---------- Left column ---------- */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Sources panel */}
             <Panel title="Projection sources" icon={<Upload size={14} />}>
               {sources.map((s) => (
                 <div key={s.id} style={{ marginBottom: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>{s.name}</span>
-                    <span style={{ fontSize: 11, color: COLORS.chalkDim, fontFamily: "'IBM Plex Mono', monospace" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>
+                      {s.name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: COLORS.chalkDim,
+                        fontFamily: "'IBM Plex Mono', monospace",
+                      }}
+                    >
                       {s.rows.length} players
                     </span>
                   </div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      alignItems: "center",
+                      marginTop: 4,
+                    }}
+                  >
                     <input
                       type="range"
                       min={0}
                       max={1}
                       step={0.05}
                       value={s.weight}
-                      onChange={(e) => updateWeight(s.id, Number(e.target.value))}
+                      onChange={(e) =>
+                        updateWeight(s.id, Number(e.target.value))
+                      }
                       style={{ flex: 1, accentColor: COLORS.gold }}
                     />
-                    <span style={{ fontSize: 11, width: 32, fontFamily: "'IBM Plex Mono', monospace" }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        width: 32,
+                        fontFamily: "'IBM Plex Mono', monospace",
+                      }}
+                    >
                       {Math.round(s.weight * 100)}%
                     </span>
                   </div>
-                  <button onClick={() => triggerUpload(s.id)} style={{ ...ghostButtonStyle, fontSize: 11, marginTop: 6, padding: "4px 10px" }}>
+                  <button
+                    onClick={() => triggerUpload(s.id)}
+                    style={{
+                      ...ghostButtonStyle,
+                      fontSize: 11,
+                      marginTop: 6,
+                      padding: "4px 10px",
+                    }}
+                  >
                     Upload CSV
                   </button>
                 </div>
               ))}
-              <div style={{ fontSize: 11, color: COLORS.chalkDim, marginTop: 4, lineHeight: 1.5 }}>
-                Columns expected: player, team, position, proj_points, bye_week (optional).
-                Loaded with sample data — upload your real exports to replace it.
+              <div
+                style={{
+                  fontSize: 11,
+                  color: COLORS.chalkDim,
+                  marginTop: 4,
+                  lineHeight: 1.5,
+                }}
+              >
+                Columns expected: player, team, position, proj_points, bye_week
+                (optional). Loaded with sample data — upload your real exports
+                to replace it.
               </div>
             </Panel>
 
@@ -497,9 +616,13 @@ export default function DraftBoard() {
             {/* Your roster */}
             <Panel title="Your roster" icon={<Users size={14} />}>
               {yourRoster.length === 0 ? (
-                <div style={{ fontSize: 12, color: COLORS.chalkDim }}>No picks yet.</div>
+                <div style={{ fontSize: 12, color: COLORS.chalkDim }}>
+                  No picks yet.
+                </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 6 }}
+                >
                   {yourRoster.map((p, i) => (
                     <div
                       key={i}
@@ -514,7 +637,12 @@ export default function DraftBoard() {
                       <span>
                         <PosBadge pos={p.position} /> {p.player}
                       </span>
-                      <span style={{ color: COLORS.chalkDim, fontFamily: "'IBM Plex Mono', monospace" }}>
+                      <span
+                        style={{
+                          color: COLORS.chalkDim,
+                          fontFamily: "'IBM Plex Mono', monospace",
+                        }}
+                      >
                         {p.bye_week != null ? `bye ${p.bye_week}` : ""}
                       </span>
                     </div>
@@ -545,8 +673,12 @@ export default function DraftBoard() {
                       }}
                     >
                       <span>Week {week}</span>
-                      <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
-                        {players.map((p) => p.player.split(" ").slice(-1)[0]).join(", ")}
+                      <span
+                        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                      >
+                        {players
+                          .map((p) => p.player.split(" ").slice(-1)[0])
+                          .join(", ")}
                         {players.length > 1 ? " ⚠" : ""}
                       </span>
                     </div>
@@ -583,25 +715,71 @@ export default function DraftBoard() {
                 >
                   {POSITIONS.indexOf(topPick.position) + 1}
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    position: "relative",
+                  }}
+                >
                   <div>
-                    <div style={{ fontSize: 11, letterSpacing: "0.2em", color: COLORS.gold, fontWeight: 600 }}>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        letterSpacing: "0.2em",
+                        color: COLORS.gold,
+                        fontWeight: 600,
+                      }}
+                    >
                       RECOMMENDED PICK
                     </div>
-                    <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 36, fontWeight: 700, margin: "4px 0" }}>
+                    <h2
+                      style={{
+                        fontFamily: "'Oswald', sans-serif",
+                        fontSize: 36,
+                        fontWeight: 700,
+                        margin: "4px 0",
+                      }}
+                    >
                       {topPick.player}
                     </h2>
-                    <div style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 13, color: COLORS.chalkDim }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                        alignItems: "center",
+                        fontSize: 13,
+                        color: COLORS.chalkDim,
+                      }}
+                    >
                       <PosBadge pos={topPick.position} />
                       <span>{topPick.team}</span>
-                      {topPick.bye_week != null && <span>Bye {topPick.bye_week}</span>}
+                      {topPick.bye_week != null && (
+                        <span>Bye {topPick.bye_week}</span>
+                      )}
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 28, fontWeight: 600, color: COLORS.gold }}>
+                    <div
+                      style={{
+                        fontFamily: "'IBM Plex Mono', monospace",
+                        fontSize: 28,
+                        fontWeight: 600,
+                        color: COLORS.gold,
+                      }}
+                    >
                       {topPick.score.toFixed(1)}
                     </div>
-                    <div style={{ fontSize: 10, color: COLORS.chalkDim, letterSpacing: "0.1em" }}>SCORE</div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: COLORS.chalkDim,
+                        letterSpacing: "0.1em",
+                      }}
+                    >
+                      SCORE
+                    </div>
                   </div>
                 </div>
 
@@ -617,11 +795,27 @@ export default function DraftBoard() {
                     fontSize: 12,
                   }}
                 >
-                  <ReasonTag label={`+${topPick.vbd.toFixed(1)} VBD`} tone="chalk" />
-                  {topPick.remaining > 0 && <ReasonTag label={`Fills open ${topPick.position} spot`} tone="gold" />}
-                  {topPick.tierBonus > 1 && <ReasonTag label={`Tier cliff (+${topPick.tierBonus.toFixed(1)})`} tone="blue" />}
+                  <ReasonTag
+                    label={`+${topPick.vbd.toFixed(1)} VBD`}
+                    tone="chalk"
+                  />
+                  {topPick.remaining > 0 && (
+                    <ReasonTag
+                      label={`Fills open ${topPick.position} spot`}
+                      tone="gold"
+                    />
+                  )}
+                  {topPick.tierBonus > 1 && (
+                    <ReasonTag
+                      label={`Tier cliff (+${topPick.tierBonus.toFixed(1)})`}
+                      tone="blue"
+                    />
+                  )}
                   {topPick.byeConflicts > 0 && (
-                    <ReasonTag label={`Bye week ${topPick.bye_week} conflict ×${topPick.byeConflicts}`} tone="amber" />
+                    <ReasonTag
+                      label={`Bye week ${topPick.bye_week} conflict ×${topPick.byeConflicts}`}
+                      tone="amber"
+                    />
                   )}
                   {topPick.byeConflicts === 0 && topPick.bye_week != null && (
                     <ReasonTag label="No bye conflict" tone="chalkDim" />
@@ -629,16 +823,32 @@ export default function DraftBoard() {
                 </div>
 
                 <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
-                  <button onClick={() => draftPlayer(topPick, true)} style={primaryButtonStyle}>
+                  <button
+                    onClick={() => draftPlayer(topPick, true)}
+                    style={primaryButtonStyle}
+                  >
                     <Check size={14} style={{ marginRight: 6 }} />
                     Draft to my team
                   </button>
-                  <button onClick={() => draftPlayer(topPick, false)} style={ghostButtonStyle}>
+                  <button
+                    onClick={() => draftPlayer(topPick, false)}
+                    style={ghostButtonStyle}
+                  >
                     Taken by someone else
                   </button>
-                  <button onClick={askClaude} style={{ ...ghostButtonStyle, marginLeft: "auto" }} disabled={aiLoading}>
+                  <button
+                    onClick={askClaude}
+                    style={{ ...ghostButtonStyle, marginLeft: "auto" }}
+                    disabled={aiLoading}
+                  >
                     {aiLoading ? (
-                      <Loader2 size={14} style={{ marginRight: 6, animation: "spin 1s linear infinite" }} />
+                      <Loader2
+                        size={14}
+                        style={{
+                          marginRight: 6,
+                          animation: "spin 1s linear infinite",
+                        }}
+                      />
                     ) : (
                       <Sparkles size={14} style={{ marginRight: 6 }} />
                     )}
@@ -665,7 +875,14 @@ export default function DraftBoard() {
 
                 {/* runners up */}
                 {runnersUp.length > 0 && (
-                  <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <div
+                    style={{
+                      marginTop: 16,
+                      display: "flex",
+                      gap: 10,
+                      flexWrap: "wrap",
+                    }}
+                  >
                     {runnersUp.map((p) => (
                       <div
                         key={p.player}
@@ -681,7 +898,12 @@ export default function DraftBoard() {
                       >
                         <PosBadge pos={p.position} small />
                         {p.player}
-                        <span style={{ color: COLORS.chalkDim, fontFamily: "'IBM Plex Mono', monospace" }}>
+                        <span
+                          style={{
+                            color: COLORS.chalkDim,
+                            fontFamily: "'IBM Plex Mono', monospace",
+                          }}
+                        >
                           {p.score.toFixed(1)}
                         </span>
                       </div>
@@ -698,8 +920,19 @@ export default function DraftBoard() {
             )}
 
             {/* Available players table */}
-            <Panel title="Available players" icon={<TrendingUp size={14} />} noPad>
-              <div style={{ display: "flex", gap: 8, padding: "0 16px 12px", flexWrap: "wrap" }}>
+            <Panel
+              title="Available players"
+              icon={<TrendingUp size={14} />}
+              noPad
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  padding: "0 16px 12px",
+                  flexWrap: "wrap",
+                }}
+              >
                 <input
                   placeholder="Search player..."
                   value={search}
@@ -714,9 +947,11 @@ export default function DraftBoard() {
                       ...ghostButtonStyle,
                       padding: "4px 10px",
                       fontSize: 11,
-                      background: posFilter === pos ? COLORS.gold : "transparent",
+                      background:
+                        posFilter === pos ? COLORS.gold : "transparent",
                       color: posFilter === pos ? COLORS.bg : COLORS.chalk,
-                      borderColor: posFilter === pos ? COLORS.gold : COLORS.line,
+                      borderColor:
+                        posFilter === pos ? COLORS.gold : COLORS.line,
                     }}
                   >
                     {pos}
@@ -724,33 +959,88 @@ export default function DraftBoard() {
                 ))}
               </div>
               <div style={{ maxHeight: 420, overflowY: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: 13,
+                  }}
+                >
                   <thead>
-                    <tr style={{ position: "sticky", top: 0, background: COLORS.panel, zIndex: 1 }}>
-                      {["Player", "Pos", "Team", "Bye", "VBD", "Score", ""].map((h) => (
-                        <th key={h} style={thStyle}>{h}</th>
-                      ))}
+                    <tr
+                      style={{
+                        position: "sticky",
+                        top: 0,
+                        background: COLORS.panel,
+                        zIndex: 1,
+                      }}
+                    >
+                      {["Player", "Pos", "Team", "Bye", "VBD", "Score", ""].map(
+                        (h) => (
+                          <th key={h} style={thStyle}>
+                            {h}
+                          </th>
+                        ),
+                      )}
                     </tr>
                   </thead>
                   <tbody>
                     {filteredTable.slice(0, 60).map((p) => (
-                      <tr key={p.player} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+                      <tr
+                        key={p.player}
+                        style={{ borderBottom: `1px solid ${COLORS.line}` }}
+                      >
                         <td style={tdStyle}>{p.player}</td>
-                        <td style={tdStyle}><PosBadge pos={p.position} small /></td>
-                        <td style={{ ...tdStyle, color: COLORS.chalkDim }}>{p.team}</td>
-                        <td style={{ ...tdStyle, color: p.byeConflicts > 0 ? COLORS.amber : COLORS.chalkDim, fontFamily: "'IBM Plex Mono', monospace" }}>
+                        <td style={tdStyle}>
+                          <PosBadge pos={p.position} small />
+                        </td>
+                        <td style={{ ...tdStyle, color: COLORS.chalkDim }}>
+                          {p.team}
+                        </td>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            color:
+                              p.byeConflicts > 0
+                                ? COLORS.amber
+                                : COLORS.chalkDim,
+                            fontFamily: "'IBM Plex Mono', monospace",
+                          }}
+                        >
                           {p.bye_week ?? "—"}
                         </td>
-                        <td style={{ ...tdStyle, fontFamily: "'IBM Plex Mono', monospace" }}>{p.vbd.toFixed(1)}</td>
-                        <td style={{ ...tdStyle, fontFamily: "'IBM Plex Mono', monospace", color: COLORS.gold, fontWeight: 600 }}>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            fontFamily: "'IBM Plex Mono', monospace",
+                          }}
+                        >
+                          {p.vbd.toFixed(1)}
+                        </td>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            fontFamily: "'IBM Plex Mono', monospace",
+                            color: COLORS.gold,
+                            fontWeight: 600,
+                          }}
+                        >
                           {p.score.toFixed(1)}
                         </td>
                         <td style={tdStyle}>
                           <div style={{ display: "flex", gap: 4 }}>
-                            <button onClick={() => draftPlayer(p, true)} title="Draft to my team" style={iconButtonStyle}>
+                            <button
+                              onClick={() => draftPlayer(p, true)}
+                              title="Draft to my team"
+                              style={iconButtonStyle}
+                            >
                               <Check size={13} />
                             </button>
-                            <button onClick={() => draftPlayer(p, false)} title="Taken by someone else" style={iconButtonStyle}>
+                            <button
+                              onClick={() => draftPlayer(p, false)}
+                              title="Taken by someone else"
+                              style={iconButtonStyle}
+                            >
                               <X size={13} />
                             </button>
                           </div>
@@ -810,7 +1100,12 @@ function Panel({ title, icon, children, noPad }) {
 
 function PosBadge({ pos, small }) {
   const posColors = {
-    QB: "#C1443C", RB: "#4E9A5B", WR: COLORS.blue, TE: COLORS.amber, K: "#8B7FB0", DST: "#7A8C7D",
+    QB: "#C1443C",
+    RB: "#4E9A5B",
+    WR: COLORS.blue,
+    TE: COLORS.amber,
+    K: "#8B7FB0",
+    DST: "#7A8C7D",
   };
   return (
     <span
@@ -833,10 +1128,21 @@ function PosBadge({ pos, small }) {
 
 function ReasonTag({ label, tone }) {
   const toneColors = {
-    gold: COLORS.gold, amber: COLORS.amber, blue: COLORS.blue, chalk: COLORS.chalk, chalkDim: COLORS.chalkDim,
+    gold: COLORS.gold,
+    amber: COLORS.amber,
+    blue: COLORS.blue,
+    chalk: COLORS.chalk,
+    chalkDim: COLORS.chalkDim,
   };
   return (
-    <span style={{ display: "flex", alignItems: "center", gap: 5, color: toneColors[tone] }}>
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 5,
+        color: toneColors[tone],
+      }}
+    >
       {tone === "amber" && <AlertTriangle size={12} />}
       {label}
     </span>
@@ -846,9 +1152,22 @@ function ReasonTag({ label, tone }) {
 function RuleSlider({ label, hint, value, onChange }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: 12.5,
+        }}
+      >
         <span>{label}</span>
-        <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: COLORS.chalkDim }}>{value.toFixed(1)}×</span>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            color: COLORS.chalkDim,
+          }}
+        >
+          {value.toFixed(1)}×
+        </span>
       </div>
       <input
         type="range"
@@ -859,14 +1178,18 @@ function RuleSlider({ label, hint, value, onChange }) {
         onChange={(e) => onChange(Number(e.target.value))}
         style={{ width: "100%", accentColor: COLORS.gold, marginTop: 4 }}
       />
-      <div style={{ fontSize: 10.5, color: COLORS.chalkDim, marginTop: 2 }}>{hint}</div>
+      <div style={{ fontSize: 10.5, color: COLORS.chalkDim, marginTop: 2 }}>
+        {hint}
+      </div>
     </div>
   );
 }
 
 function LabeledNumber({ label, value, onChange, min, max }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+    <div
+      style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}
+    >
       <span style={{ color: COLORS.chalkDim }}>{label}</span>
       <input
         type="number"
