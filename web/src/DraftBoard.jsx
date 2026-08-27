@@ -14,16 +14,16 @@ const FONTS = `
 `;
 
 const COLORS = {
-  bg: "#12201A",
-  panel: "#1B2B22",
-  panelLight: "#233529",
-  chalk: "#F3EEDF",
-  chalkDim: "#9FB0A2",
-  line: "#2E4235",
-  gold: "#D4A73D",
-  amber: "#E8A33D",
-  red: "#C1443C",
-  blue: "#5A9BB0",
+  bg: "#0B0B0B",
+  panel: "#171717",
+  panelLight: "#242424",
+  chalk: "#FFFFFF",
+  chalkDim: "#B8B8B8",
+  line: "#3A3A3A",
+  gold: "#FB4F14",
+  amber: "#FF6A2A",
+  red: "#FB4F14",
+  blue: "#D8D8D8",
 };
 
 const POSITIONS = ["QB", "RB", "WR", "TE", "K", "DST"];
